@@ -4,7 +4,7 @@
 // @version      1.0
 // @description  Vortex Client for Bloxd.io
 // @author       GEORGECR
-// @homepageURL  https://yourwebsite.com/vortex
+// @homepageURL  https://georgecr0.github.io/Vortex-Client/
 // @icon         https://i.postimg.cc/fRpcmPqN/Vortex-Logo.png
 // @match        https://bloxd.io/*
 // @grant        none
@@ -596,3 +596,4 @@ const modules = {
         }
     });
 })();
+
