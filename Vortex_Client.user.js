@@ -1,15 +1,15 @@
 // ==UserScript==
 // @name         Vortex Client
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.0
 // @description  Vortex Client for Bloxd.io
 // @author       GEORGECR
 // @homepageURL  https://yourwebsite.com/vortex
 // @icon         https://i.postimg.cc/fRpcmPqN/Vortex-Logo.png
 // @match        https://bloxd.io/*
 // @grant        none
-// @downloadURL  https://raw.githubusercontent.com/YourUsername/YourRepo/main/Vortex_Client.user.js
-// @updateURL    https://raw.githubusercontent.com/YourUsername/YourRepo/main/Vortex_Client.user.js
+// @downloadURL  https://raw.githubusercontent.com/GEORGECR0/Vortex_Client_Code/main/Vortex_Client.user.js
+// @updateURL    https://raw.githubusercontent.com/GEORGECR0/Vortex_Client_Code/main/Vortex_Client.user.js
 // ==/UserScript==
 
 (function () {
