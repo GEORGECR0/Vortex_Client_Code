@@ -2,7 +2,7 @@
 // @name         Vortex Client
 // @namespace    http://tampermonkey.net/
 // @version      1.0
-// @description  Vortex Client for Bloxd.io
+// @description  Vortex Client for Bloxd.io with module functions
 // @author       GEORGECR
 // @homepageURL  https://georgecr0.github.io/Vortex-Client/
 // @icon         https://i.postimg.cc/fRpcmPqN/Vortex-Logo.png
@@ -15,6 +15,96 @@
 (function () {
     'use strict';
 
+    const storageKey = 'vortexClientModuleStates';
+
+    //MODULES (this is not ai bruh its just so its more clean)
+    const modules = {
+        'Combat': [
+            {
+                name: 'Keystrokes', description: 'Displays movement keys\nand clicks on screen.', hasSettings: true, enabled: true,
+                onEnable: () => { console.log("Keystrokes enabled"); },
+                onDisable: () => { console.log("Keystrokes disabled"); }
+            },
+            {
+                name: 'Combat Log Timer', description: 'Tracks the time since\nyour last combat log.', enabled: false,
+                onEnable: () => console.log("Combat Log Timer enabled"),
+                onDisable: () => console.log("Combat Log Timer disabled")
+            },
+        ],
+        'Visual': [
+            {
+                name: 'Armour View', description: 'Shows your armor status\nand durability.', hasSettings: true, enabled: true,
+                onEnable: () => console.log("Armour View enabled"),
+                onDisable: () => console.log("Armour View disabled")
+            },
+            {
+                name: 'Cps Counter', description: 'Displays your clicks per\nsecond (CPS).', enabled: true,
+                onEnable: () => cpsModule.start(),
+                onDisable: () => cpsModule.stop()
+            },
+            {
+                name: 'Ping Counter', description: 'Shows your current ping\nto the server.', enabled: false,
+                onEnable: () => pingModule.start(),
+                onDisable: () => pingModule.stop()
+            },
+        ],
+        'Player': [],
+        'Utility': [
+            {
+                name: 'Resolution Adjuster', description: 'Change game resolution\nwithout restarting.', hasSettings: true, enabled: false,
+                onEnable: () => console.log("Resolution Adjuster enabled"),
+                onDisable: () => console.log("Resolution Adjuster disabled")
+            },
+            {
+                name: 'Notifications', description: 'Show alerts for events\nand key actions.', enabled: true,
+                onEnable: () => console.log("Notifications enabled"),
+                onDisable: () => console.log("Notifications disabled")
+            },
+            {
+                name: 'Cinematic Mode', description: 'Smooth camera motion\nfor cinematic use.', hasSettings: true, enabled: false,
+                onEnable: () => console.log("Cinematic Mode enabled"),
+                onDisable: () => console.log("Cinematic Mode disabled")
+            },
+        ],
+        'Cosmetics': [
+            {
+                name: 'Nametags', description: 'Customize appearance\nof player nametags.', hasSettings: true, enabled: false,
+                onEnable: () => console.log("Nametags enabled"),
+                onDisable: () => console.log("Nametags disabled")
+            },
+            {
+                name: 'Custom Cape', description: 'Equip and display your\npersonalized cape.', hasSettings: true, enabled: true,
+                onEnable: () => console.log("Custom Cape enabled"),
+                onDisable: () => console.log("Custom Cape disabled")
+            },
+        ],
+        'Settings': []
+    };
+
+    function getModuleByName(moduleName) {
+        for (const category of Object.values(modules)) {
+            const foundModule = category.find(m => m.name === moduleName);
+            if (foundModule) {
+                return foundModule;
+            }
+        }
+        return null;
+    }
+
+    function initializeModules() {
+        const savedStates = JSON.parse(localStorage.getItem(storageKey)) || {};
+
+        Object.values(modules).flat().forEach(module => {
+            const isEnabled = savedStates[module.name] !== undefined ? savedStates[module.name] : module.enabled;
+
+            if (isEnabled && typeof module.onEnable === 'function') {
+                console.log(`Auto-enabling ${module.name}`);
+                module.onEnable();
+            }
+        });
+    }
+
+    //CLIENT UI & SHIT (this is not ai bruh its just so its more clean)
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = 'https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css';
@@ -24,6 +114,55 @@
     gameui.style.display = 'block';
     gameui.style.filter = 'grayscale(80%) brightness(0.6)';
     gameui.style.transition = 'all 0.2s ease';
+
+    let menuInterval, gameInterval;
+    const ClientHud = document.createElement('div');
+    ClientHud.style.position = 'fixed';
+    ClientHud.style.left = '0px';
+    ClientHud.style.top = '0px';
+    ClientHud.style.backgroundColor = 'transparent';
+    ClientHud.style.width = '100%';
+    ClientHud.style.height = '100%';
+    ClientHud.style.display = 'block';
+    ClientHud.style.zIndex = '1';
+    ClientHud.style.pointerEvents = 'none';
+    document.body.appendChild(ClientHud);
+
+    function inMenu() {
+        ClientHud.style.display = 'none';
+    }
+
+    function inGame() {
+        ClientHud.style.display = 'block';
+    }
+
+    function checkState() {
+        const homePage = document.querySelector(".HomePage");
+        if (homePage && window.getComputedStyle(homePage).display !== "none") {
+
+            if (!menuInterval) {
+                menuInterval = setInterval(inMenu, 1000);
+            }
+            if (gameInterval) {
+                clearInterval(gameInterval);
+                gameInterval = null;
+            }
+        } else {
+
+            if (!gameInterval) {
+                gameInterval = setInterval(inGame, 1000);
+            }
+            if (menuInterval) {
+                clearInterval(menuInterval);
+                menuInterval = null;
+            }
+        }
+    }
+
+    checkState();
+
+    setInterval(checkState, 1000);
+
 
     const hud = document.createElement('div');
     hud.style.position = 'fixed';
@@ -161,7 +300,7 @@
         { name: 'Combat', icon: 'ri-sword-fill', description: '#Modules for fighting and attacks' },
         { name: 'Visual', icon: 'ri-eye-fill', description: '#Modules for graphics and effects' },
         { name: 'Player', icon: 'ri-walk-fill', description: '#Modules for movement and stats' },
-        { name: 'Utility', icon: 'ri-settings-3-fill', description: '#Modules for extra tools and functions' },
+        { name: 'Utility', icon: 'ri-tools-fill', description: '#Modules for extra tools and functions' },
         { name: 'Cosmetics', icon: 'ri-magic-fill', description: '#Modules for skins and appearance' }
     ];
 
@@ -237,7 +376,7 @@
     tabBar.appendChild(bottomSeparator);
 
     const footerButtons = [
-        { name: 'Settings', icon: 'ri-tools-fill' },
+        { name: 'Settings', icon: 'ri-settings-5-fill' },
         { name: 'Exit', icon: 'ri-logout-box-r-fill' }
     ];
 
@@ -301,7 +440,7 @@
         tabBar.appendChild(fBtn);
     });
 
-    function createModuleCard(moduleName, iconClass, descriptionText, hasSettings = false) {
+    function createModuleCard(moduleName, iconClass, descriptionText, hasSettings = false, isEnabled = false) {
         const card = document.createElement('div');
         card.style.backgroundColor = 'rgba(255, 255, 255, 0.05)';
         card.style.borderRadius = '12px';
@@ -370,15 +509,34 @@
         sliderKnob.style.borderRadius = '50%';
         slider.appendChild(sliderKnob);
 
+        if (isEnabled) {
+            switchInput.checked = true;
+            slider.style.backgroundColor = 'rgba(110, 40, 40, 0.8)';
+            sliderKnob.style.transform = 'translateX(26px)';
+        }
+
+        //ON  ENABLE & ON DISABLE SHIT (this is not ai bruh its just so its more clean)
         switchInput.addEventListener('change', () => {
-            if (switchInput.checked) {
+            const isChecked = switchInput.checked;
+            if (isChecked) {
                 slider.style.backgroundColor = 'rgba(110, 40, 40, 0.8)';
                 sliderKnob.style.transform = 'translateX(26px)';
-                console.log(`Module '${moduleName}' is now ON.`);
             } else {
-                slider.style.backgroundColor = 'rgba(100, 100, 100, 0.5)';
+                slider.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
                 sliderKnob.style.transform = 'translateX(0)';
-                console.log(`Module '${moduleName}' is now OFF.`);
+            }
+
+            let savedStates = JSON.parse(localStorage.getItem(storageKey)) || {};
+            savedStates[moduleName] = isChecked;
+            localStorage.setItem(storageKey, JSON.stringify(savedStates));
+
+            const module = getModuleByName(moduleName);
+            if (!module) return;
+
+            if (isChecked && typeof module.onEnable === 'function') {
+                module.onEnable();
+            } else if (!isChecked && typeof module.onDisable === 'function') {
+                module.onDisable();
             }
         });
 
@@ -470,43 +628,15 @@
         gridContainer.style.padding = '10px';
         contentArea.appendChild(gridContainer);
 
-const modules = {
-    'Combat': [
-        { name: 'Keystrokes', description: 'Displays movement keys\nand clicks on screen.', hasSettings: true },
-        { name: 'Combat Log Timer', description: 'Tracks the time since\nyour last combat log.' },
-    ],
-    'Visual': [
-        { name: 'Armour View', description: 'Shows your armor status\nand durability.', hasSettings: true },
-        { name: 'Cps Counter', description: 'Displays your clicks per\nsecond (CPS).', hasSettings: true },
-        { name: 'Ping Counter', description: 'Shows your current ping\nto the server.', hasSettings: true },
-    ],
-    'Player': [
-
-    ],
-    'Utility': [
-        { name: 'Resolution Adjuster', description: 'Change game resolution\nwithout restarting.', hasSettings: true },
-        { name: 'Notifications', description: 'Show alerts for events\nand key actions.' },
-        { name: 'Cinematic Mode', description: 'Smooth camera motion\nfor cinematic use.', hasSettings: true },
-    ],
-    'Cosmetics': [
-        { name: 'Nametags', description: 'Customize appearance\nof player nametags.', hasSettings: true },
-        { name: 'Custom Cape', description: 'Equip and display your\npersonalized cape.' , hasSettings: true},
-    ],
-    'Settings': [
-
-    ]
-};
-
-
+        let savedStates = JSON.parse(localStorage.getItem(storageKey)) || {};
 
         const currentModules = modules[tabName] || [];
         currentModules.forEach(module => {
-            const card = createModuleCard(module.name, module.icon, module.description, module.hasSettings);
+            const isEnabled = savedStates[module.name] !== undefined ? savedStates[module.name] : module.enabled;
+            const card = createModuleCard(module.name, module.icon, module.description, module.hasSettings, isEnabled);
             gridContainer.appendChild(card);
         });
     }
-
-    setContent(tabs[0].name, tabs[0].description);
 
     const createStyledButton = (options = {}) => {
         const btn = document.createElement('button');
@@ -595,5 +725,241 @@ const modules = {
             }
         }
     });
-})();
 
+    setContent(tabs[0].name, tabs[0].description);
+
+    setTimeout(initializeModules, 2000);
+
+    //CPS COUNTER MODULE (this is not ai bruh its just so its more clean)
+    const cpsModule = (function () {
+        let cpsHud = null;
+        let clicksTextSpan = null;
+        let clickListener = null;
+        let updateIntervalId = null;
+        let positionIntervalId = null;
+
+        let leftClicks = 0;
+        let rightClicks = 0;
+        let lastLeftClickTime = 0;
+        let lastRightClickTime = 0;
+
+        const start = () => {
+            if (cpsHud) return;
+            cpsHud = document.createElement("div");
+            cpsHud.style.position = "fixed";
+            cpsHud.id = 'cpsDisplay';
+            cpsHud.style.background = "rgba(0, 0, 0, 0.6)";
+            cpsHud.style.color = "#fff";
+            cpsHud.style.alignItems = 'center';
+            cpsHud.style.justifyContent = 'center';
+            cpsHud.style.fontWeight = '500';
+            cpsHud.style.zIndex = '0.5';
+            cpsHud.style.display = 'none';
+            const cpsTextSpan = document.createElement("span");
+            cpsTextSpan.style.color = "#cfcfcf";
+            cpsTextSpan.innerText = "CPS ";
+            cpsTextSpan.style.marginRight = '5px';
+            clicksTextSpan = document.createElement("span");
+            clicksTextSpan.style.color = "#fff";
+            clicksTextSpan.innerText = "0 │ 0";
+            cpsHud.appendChild(cpsTextSpan);
+            cpsHud.appendChild(clicksTextSpan);
+            ClientHud.appendChild(cpsHud);
+            lastLeftClickTime = Date.now();
+            lastRightClickTime = Date.now();
+            clickListener = (e) => {
+                if (e.button === 0) {
+                    leftClicks++;
+                } else if (e.button === 2) {
+                    rightClicks++;
+                }
+            };
+            document.addEventListener("mousedown", clickListener);
+
+            const updateBoxPosition = () => {
+                if (!cpsHud) return;
+
+                const header = document.querySelector('.InGameHeader');
+                if (!header || header.offsetHeight === 0) {
+                    cpsHud.style.display = 'none';
+                    return;
+                }
+                cpsHud.style.display = 'flex';
+
+                const fps = document.querySelector('.FpsWrapperDiv');
+                const coords = document.querySelectorAll('.CoordinateUI');
+                const fpsVisible = fps && window.getComputedStyle(fps).display !== 'none';
+                const visibleCoords = Array.from(coords).filter(c => window.getComputedStyle(c).display !== 'none');
+                let targetRect = null;
+
+                if (visibleCoords.length > 0) {
+                    const rightmostCoord = visibleCoords.reduce((a, b) => a.getBoundingClientRect().right > b.getBoundingClientRect().right ? a : b);
+                    targetRect = rightmostCoord.getBoundingClientRect();
+                } else if (fpsVisible) {
+                    targetRect = fps.getBoundingClientRect();
+                } else {
+                    targetRect = header.getBoundingClientRect();
+                }
+
+                cpsHud.style.top = `${targetRect.top}px`;
+                cpsHud.style.left = `${targetRect.right + 5}px`;
+                cpsHud.style.height = `${header.offsetHeight}px`;
+                const headerStyle = window.getComputedStyle(header);
+                cpsHud.style.background = headerStyle.backgroundColor;
+                cpsHud.style.border = headerStyle.border;
+                cpsHud.style.borderRadius = headerStyle.borderRadius;
+                cpsHud.style.width = 'auto';
+                cpsHud.style.width = `${cpsHud.offsetWidth + 10}px`;
+            };
+
+            setInterval(() => {
+                clicksTextSpan.innerText = `${leftClicks} │ ${rightClicks}`;
+                leftClicks = 0;
+                rightClicks = 0;
+            }, 1000);
+
+            positionIntervalId = setInterval(updateBoxPosition, 250);
+        };
+
+        const stop = () => {
+            clearInterval(updateIntervalId);
+            clearInterval(positionIntervalId);
+            updateIntervalId = positionIntervalId = null;
+
+            if (clickListener) {
+                document.removeEventListener("mousedown", clickListener);
+                clickListener = null;
+            }
+
+            if (cpsHud) {
+                cpsHud.remove();
+                cpsHud = null;
+            }
+
+            leftClicks = 0;
+            rightClicks = 0;
+        };
+
+        return {
+            start,
+            stop
+        };
+    })();
+
+    //PING COUNTER MODULE (this is not ai bruh its just so its more clean)
+    const pingModule = (function () {
+        let pingHud = null;
+        let msTextSpan = null;
+        let pingUpdateIntervalId = null;
+        let textUpdateIntervalId = null;
+        let positionIntervalId = null;
+        let ping = 0;
+
+        const start = () => {
+            if (pingHud) return;
+            pingHud = document.createElement("div");
+            pingHud.style.position = "fixed";
+            pingHud.style.color = "#fff";
+            pingHud.style.display = 'none';
+            pingHud.style.alignItems = 'center';
+            pingHud.style.justifyContent = 'center';
+            pingHud.style.fontWeight = '500';
+            pingHud.style.zIndex = '0.5';
+            const pingTextSpan = document.createElement("span");
+            pingTextSpan.style.color = "#cfcfcf";
+            pingTextSpan.innerText = "PING ";
+            pingTextSpan.style.marginRight = '5px';
+            msTextSpan = document.createElement("span");
+            msTextSpan.style.color = "#fff";
+            msTextSpan.innerText = "--ms";
+            pingHud.appendChild(pingTextSpan);
+            pingHud.appendChild(msTextSpan);
+            ClientHud.appendChild(pingHud);
+
+            const updatePing = () => {
+                const startTime = Date.now();
+                fetch(window.location.origin, { method: 'HEAD', mode: 'no-cors', cache: 'no-store' })
+                    .then(() => {
+                    ping = Date.now() - startTime;
+                })
+                    .catch(() => {
+                    ping = -1;
+                });
+            };
+            const updateBoxPosition = () => {
+                if (!pingHud) return;
+
+                const header = document.querySelector('.InGameHeader');
+                if (!header || header.offsetHeight === 0) {
+                    pingHud.style.display = 'none';
+                    return;
+                }
+                pingHud.style.display = 'flex';
+
+                const fps = document.querySelector('.FpsWrapperDiv');
+                const coords = document.querySelectorAll('.CoordinateUI');
+                const cpsElement = document.getElementById('cpsDisplay');
+
+                const fpsVisible = fps && window.getComputedStyle(fps).display !== 'none';
+                const visibleCoords = Array.from(coords).filter(c => window.getComputedStyle(c).display !== 'none');
+                const cpsVisible = cpsElement && window.getComputedStyle(cpsElement).display !== 'none';
+
+                let targetRect = null;
+
+                if (cpsVisible) {
+                    targetRect = cpsElement.getBoundingClientRect();
+                } else if (visibleCoords.length > 0) {
+                    targetRect = visibleCoords.reduce((rightmost, c) => {
+                        const rect = c.getBoundingClientRect();
+                        return !rightmost || rect.right > rightmost.right ? rect : rightmost;
+                    }, null);
+                } else if (fpsVisible) {
+                    targetRect = fps.getBoundingClientRect();
+                } else {
+                    targetRect = header.getBoundingClientRect();
+                }
+
+                pingHud.style.top = `${targetRect.top}px`;
+                pingHud.style.left = `${targetRect.right + 5}px`;
+                pingHud.style.height = `${header.offsetHeight}px`;
+
+                const headerStyle = window.getComputedStyle(header);
+                pingHud.style.background = headerStyle.backgroundColor;
+                pingHud.style.border = headerStyle.border;
+                pingHud.style.borderRadius = headerStyle.borderRadius;
+                pingHud.style.width = 'auto';
+                pingHud.style.width = `${pingHud.offsetWidth + 10}px`;
+            };
+
+            textUpdateIntervalId = setInterval(() => {
+                if (msTextSpan) {
+                    msTextSpan.innerText = ping >= 0 ? `${ping}ms` : "--";
+                }
+            }, 1000);
+            pingUpdateIntervalId = setInterval(updatePing, 2500);
+            positionIntervalId = setInterval(updateBoxPosition, 300);
+            updatePing();
+            updateBoxPosition();
+        };
+
+        const stop = () => {
+            clearInterval(pingUpdateIntervalId);
+            clearInterval(textUpdateIntervalId);
+            clearInterval(positionIntervalId);
+            pingUpdateIntervalId = textUpdateIntervalId = positionIntervalId = null;
+            if (pingHud) {
+                pingHud.remove();
+                pingHud = null;
+            }
+
+            msTextSpan = null;
+            ping = 0;
+        };
+
+        return {
+            start,
+            stop
+        };
+
+    })();
+})();
