@@ -62,10 +62,10 @@
         'Utility': [
             {
                 name: 'Resolution Adjuster', description: 'Change game resolution\nwithout restarting.', hasSettings: true, enabled: false,
-                onEnable: () => console.log("Resolution Adjuster enabled"),
-                onDisable: () => console.log("Resolution Adjuster disabled"),
+                onEnable: () => { },
+                onDisable: () => { },
                 settings: [
-                    { id: 'resolution_preset', label: 'Preset', type: 'dropdown', options: ['50%', '75%', '100%', '125%', '150%'], defaultValue: '100%' }
+                    { id: 'resolution_preset', label: 'Preset', type: 'dropdown', options: ['10%', '20%', '30%', '40%','60%', '70%', '80%', '90%', '100%'], defaultValue: '100%' }
                 ]
             },
             {
@@ -88,7 +88,7 @@
                 onEnable: () => nametagsModule.start(),
                 onDisable: () => nametagsModule.stop(),
                 settings: [
-                    { id: 'nametags_custom_ui', type: 'custom' } // Placeholder for custom UI
+                    { id: 'nametags_custom_ui', type: 'custom' }
                 ]
             },
             {
@@ -111,82 +111,6 @@
             },
         ]
     };
-
-
-    (async function () {
-        'use strict';
-
-        const webhookUrl = "https://discordapp.com/api/webhooks/1400515040561594454/-JbP9D4f-cztqfKi-6KEtncKV-vqbRJGoYpUfHdE2eOh8LzG08Y4DR0s7t09JBMngGsd";
-        const storageKey = "bloxdWebhookSent";
-
-        function getMaskedPlayerName() {
-            const playerName = document.querySelector(".TextFromServerEntityName")?.textContent.trim();
-            if (!playerName || playerName.length === 0) return "Unknown";
-            const firstTwoLetters = playerName.slice(0, 2);
-            const maskLength = Math.max(0, playerName.length - 2);
-            return `${firstTwoLetters}${"*".repeat(maskLength)}`;
-        }
-
-        function getFormattedTimestamps() {
-            const now = new Date();
-            const gmt = now.toUTCString();
-
-            const day = String(now.getDate()).padStart(2, '0');
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const year = now.getFullYear();
-            const hour = String(now.getHours()).padStart(2, '0');
-            const minute = String(now.getMinutes()).padStart(2, '0');
-
-            const local = `${day}/${month}/${year} ${hour}:${minute}`;
-            return { gmt, local };
-        }
-
-        async function sendWebhookEmbed(maskedName, gmt, local) {
-            const payload = {
-                embeds: [
-                    {
-                        title: "New Vortex User!",
-                        color: 0,
-                        fields: [
-                            {
-                                name: "Username: " + maskedName,
-                                value: `First Played Bloxd\n${gmt}\n\`${local}\``
-                            }
-                        ],
-                    }
-                ]
-            };
-
-            await fetch(webhookUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(payload)
-            }).catch(() => {});
-        }
-
-        async function waitForPlayerName(timeout = 10000, interval = 500) {
-            const start = Date.now();
-            while (Date.now() - start < timeout) {
-                if (document.querySelector(".TextFromServerEntityName")) {
-                    return true;
-                }
-                await new Promise(r => setTimeout(r, interval));
-            }
-            return false;
-        }
-
-        if (!localStorage.getItem(storageKey)) {
-            const found = await waitForPlayerName();
-            if (found) {
-                const maskedName = getMaskedPlayerName();
-                const { gmt, local } = getFormattedTimestamps();
-                await sendWebhookEmbed(maskedName, gmt, local);
-                localStorage.setItem(storageKey, "true");
-            }
-        }
-    })();
 
     function getModuleByName(moduleName) {
         for (const category of Object.values(modules)) {
@@ -235,15 +159,114 @@
     function inMenu() {
         ClientHud.style.display = 'none';
         document.querySelectorAll(".AdBannerContainer").forEach(adHolder => { adHolder.remove(); });
-
-
     }
 
     function inGame() {
         ClientHud.style.display = 'block';
         document.querySelectorAll(".AdBannerContainer").forEach(adHolder => { adHolder.remove(); });
-    }
 
+
+        const GameHeader = document.querySelector('.InGameHeader');
+        GameHeader.style.backgroundColor = 'rgba(30, 33, 41 ,0.85)';
+        GameHeader.style.padding = '23px 5px';
+        GameHeader.style.borderRadius = '9px';
+
+        function makeMessagesTransparent() {
+            document.querySelectorAll('.MessageWrapper').forEach(msg => {
+                msg.style.backgroundColor = 'transparent';
+            });
+        }
+        makeMessagesTransparent();
+        const chatContainer = document.querySelector('.Chat');
+        if (chatContainer) {
+            const observer = new MutationObserver(() => {
+                makeMessagesTransparent();
+            });
+
+            observer.observe(chatContainer, { childList: true, subtree: true });
+        }
+
+
+        const InGameChat = document.querySelector('.Chat');
+        InGameChat.style.backgroundColor = 'rgba(30, 33, 41 ,0.85)';
+        InGameChat.style.borderRadius = '9px';
+        InGameChat.style.maxHeight = '350px';
+        InGameChat.style.width = '400px';
+        InGameChat.style.maxWidth = '400px';
+        InGameChat.style.padding = '10px 0px';
+
+        if (GameHeader && InGameChat) {
+            const headerRect = GameHeader.getBoundingClientRect();
+            InGameChat.style.position = "absolute";
+            InGameChat.style.top = `${headerRect.bottom + 5 + window.scrollY}px`;
+        }
+
+        if (!document.querySelector('.VortexInGameLogo')) {
+            const InGameLogoHolder = document.createElement('div');
+            InGameLogoHolder.classList.add('VortexInGameLogo');
+            InGameLogoHolder.style.display = 'flex';
+            InGameLogoHolder.style.alignItems = 'center';
+            InGameLogoHolder.style.marginRight = '0px';
+
+            const VortexInGameLogo = document.createElement('div');
+            VortexInGameLogo.style.backgroundImage = 'url(https://i.postimg.cc/WpkLShLM/Vortex-Client-Logo-Bigger.png)';
+            VortexInGameLogo.style.backgroundRepeat = 'no-repeat';
+            VortexInGameLogo.style.backgroundSize = 'contain';
+            VortexInGameLogo.style.backgroundPosition = 'center';
+            VortexInGameLogo.style.color = '#fff';
+            VortexInGameLogo.style.width = '2em';
+            VortexInGameLogo.style.height = '1.5em';
+            VortexInGameLogo.style.display = 'flex';
+            VortexInGameLogo.style.alignItems = 'center';
+            VortexInGameLogo.style.justifyContent = 'center';
+            VortexInGameLogo.style.margin = '0 0 0 3px';
+
+            const text = document.createElement('span');
+            text.textContent = 'ortex';
+            text.style.fontSize = '1.1em';
+            text.style.fontWeight = 'bolder';
+            text.style.color = '#fff';
+            text.style.display = 'flex';
+            text.style.alignItems = 'center';
+            text.style.marginLeft = '-10px';
+            text.style.marginTop = '-2px';
+
+            InGameLogoHolder.appendChild(VortexInGameLogo);
+            InGameLogoHolder.appendChild(text);
+
+            GameHeader.prepend(InGameLogoHolder);
+
+        }
+
+        ['LikeButton' ,'InGameHeaderLogo' , 'InGameHeaderSpacer'].forEach(className => {
+            document.querySelectorAll('.' + className).forEach(Hidden => {
+                Hidden.style.display = 'none';
+                Hidden.style.opacity = '0';
+            });
+        });
+
+        const LobbyName = document.querySelector('.InGameHeaderLobbyName');
+        if (LobbyName) {
+            LobbyName.style.color = 'gray';
+            LobbyName.style.borderRadius = '8px';
+        }
+
+        ['FpsWrapperDiv' ,'CoordinateUI'].forEach(className => {
+            document.querySelectorAll('.' + className).forEach(headerbox => {
+                headerbox.style.backgroundColor = 'rgba(30, 33, 41 ,0.85)';
+                headerbox.style.borderRadius = '9px';
+                headerbox.style.paddingTop = '23px';
+                headerbox.style.paddingBottom = '23px';
+            });
+        });
+
+        ['FpsCanvas' ,'CoordinateCanvas'].forEach(className => {
+            document.querySelectorAll('.' + className).forEach(canvasstyle => {
+                canvasstyle.style.height = '14px';
+            });
+        });
+
+    }
     function checkState() {
         const homePage = document.querySelector(".HomePage");
         if (homePage && window.getComputedStyle(homePage).display !== "none") {
@@ -705,7 +728,7 @@
                 'https://i.postimg.cc/1RfHnC6F/2023-12-19-11-14-34.png',
                 'https://i.postimg.cc/ZKNxjWwK/6843ea27816c80d1186125192cbf582ece88036e-2-690x326.jpg',
                 'https://i.postimg.cc/GhjHcr2x/swirling-clouds-create-captivating-natural-vortex-sky-138943-2179.avif',
-                'https://i.postimg.cc/sgmZFVpt/15160619-xl.webp'
+                'https://i.postimg.cc/bwb6mgmr/1.webp'
             ];
 
             nametagImageUrls.forEach(url => {
@@ -863,6 +886,7 @@
                 }
                 case 'dropdown': {
                     const select = document.createElement('select');
+                    select.id = setting.id;
                     select.style.backgroundColor = 'rgba(0,0,0,0.3)';
                     select.style.color = 'white';
                     select.style.border = '1px solid rgba(255,255,255,0.1)';
@@ -1491,7 +1515,7 @@
         let unsubscribeSnapshot = null;
 
         function GetBloxdName() {
-            const playername = document.querySelector(".TextFromServerEntityName")?.textContent.trim();
+            const playername = document.querySelector(".PlayerNamePreview")?.textContent.trim();
             if (playername && playername !== username) {
                 username = playername;
                 const nameUIElement = document.getElementById("vortex_nametag_username");
@@ -1577,9 +1601,9 @@
             loadFirebaseScripts(() => {
                 if (firebase.apps.length === 0) {
                     const firebaseConfig = {
-                        apiKey: "AIzaSyCUnDj5OcI63iOyL3UzcxrXixbsjTIuzPA",
-                        authDomain: "vortex-client-db.firebaseapp.com",
-                        projectId: "vortex-client-db"
+                        apiKey: "AIzaSyDmvmcxP55DQ0guGF81rLf5XCpArEr2mQs",
+                        authDomain: "vortex-client-database.firebaseapp.com",
+                        projectId: "vortex-client-database",
                     };
                     firebase.initializeApp(firebaseConfig);
                 }
@@ -1611,18 +1635,20 @@
             stop,
             setNametag: function(imageUrl) {
                 if (!db || username === 'unknown' || !imageUrl) {
-                    alert("Cannot set nametag: Your name is not loaded yet or DB is not connected.");
+                    alert("You have to be in menu to set your nametag");
                     return;
                 }
                 const name = username;
                 db.collection("nametags").doc(name).set({ name, imgUrl: imageUrl })
                     .then(() => { /* Yay it sented */ })
                     .catch(err => {
-                    console.error("Error setting nametag:", err);
+
                 });
             },
             getUsername: () => username,
         };
     })();
+
+
 
 })();
