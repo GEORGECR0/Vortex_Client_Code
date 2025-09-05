@@ -22,7 +22,7 @@
     const modules = {
         'Combat': [
             {
-                name: 'Keystrokes', description: 'Displays movement keys\nand clicks on screen.', hasSettings: true, enabled: true,
+                name: 'Keystrokes', description: 'Displays movement keys\nand clicks on screen.', hasSettings: true, enabled: false,
                 onEnable: () => { console.log("Keystrokes enabled"); },
                 onDisable: () => { console.log("Keystrokes disabled"); },
                 settings: [
@@ -30,11 +30,6 @@
                     { id: 'keystrokes_color', label: 'Text Color', type: 'color', defaultValue: '#ffffff' },
                     { id: 'keystrokes_showcps', label: 'Show CPS', type: 'toggle', defaultValue: true }
                 ]
-            },
-            {
-                name: 'Combat Log Timer', description: 'Tracks the time since\nyour last combat log.', enabled: false,
-                onEnable: () => console.log("Combat Log Timer enabled"),
-                onDisable: () => console.log("Combat Log Timer disabled")
             },
         ],
         'Visual': [
@@ -53,12 +48,38 @@
                 onDisable: () => { cpsModule.stop() }
             },
             {
-                name: 'Ping Counter', description: 'Shows your current ping\nto the server.', enabled: false,
+                name: 'Ping Counter', description: 'Shows your current ping\nto the server.', enabled: true,
                 onEnable: () => { pingModule.start() },
                 onDisable: () => { pingModule.stop() }
             },
+            {
+                name: 'Custom Crosshair', description: 'Customize your crosshair\nstyle and color.', hasSettings: true, enabled: false,
+                onEnable: () => { crosshairModule.start() },
+                onDisable: () => { crosshairModule.stop() },
+                settings: [
+                    { id: 'crosshair_color', label: 'Color', type: 'color', defaultValue: '#ffffff' },
+                    { id: 'crosshair_size', label: 'Size', type: 'slider', min: 1, max: 10, step: 1, defaultValue: 4 },
+                    { id: 'crosshair_shape', label: 'Shape', type: 'dropdown', options: ['Default', 'Cross', 'Square', 'Dot', 'Arrow', 'Crossed'], defaultValue: 'Default' }
+                ]
+            }
+
         ],
-        'Player': [],
+        'Player': [
+            {
+                name: 'Combat Log Timer', description: 'Tracks the time since\nyour last combat log.', enabled: false,
+                onEnable: () => console.log("Combat Log Timer enabled"),
+                onDisable: () => console.log("Combat Log Timer disabled")
+            },
+            {
+                name: 'Cinematic Mode', description: 'Smooth camera motion\nfor cinematic use.', hasSettings: true, enabled: false,
+                onEnable: () => console.log("Cinematic Mode enabled"),
+                onDisable: () => console.log("Cinematic Mode disabled"),
+                settings: [
+                    { id: 'cinematic_smoothness', label: 'Smoothness', type: 'slider', min: 1, max: 10, step: 1, defaultValue: 5 }
+                ]
+            }
+        ],
+
         'Utility': [
             {
                 name: 'Resolution Adjuster', description: 'Change game resolution\nwithout restarting.', hasSettings: true, enabled: false,
@@ -69,17 +90,9 @@
                 ]
             },
             {
-                name: 'Notifications', description: 'Show alerts for events\nand key actions.', enabled: true,
+                name: 'Notifications', description: 'Show alerts for events\nand key actions.', enabled: false,
                 onEnable: () => console.log("Notifications enabled"),
                 onDisable: () => console.log("Notifications disabled")
-            },
-            {
-                name: 'Cinematic Mode', description: 'Smooth camera motion\nfor cinematic use.', hasSettings: true, enabled: false,
-                onEnable: () => console.log("Cinematic Mode enabled"),
-                onDisable: () => console.log("Cinematic Mode disabled"),
-                settings: [
-                    { id: 'cinematic_smoothness', label: 'Smoothness', type: 'slider', min: 1, max: 10, step: 1, defaultValue: 5 }
-                ]
             },
         ],
         'Cosmetics': [
@@ -92,11 +105,11 @@
                 ]
             },
             {
-                name: 'Custom Cape', description: 'Equip and display your\npersonalized cape.', hasSettings: true, enabled: true,
+                name: 'Custom Cape', description: 'Coming very soon cuz i have school and no time.', hasSettings: true, enabled: false,
                 onEnable: () => console.log("Custom Cape enabled"),
                 onDisable: () => console.log("Custom Cape disabled"),
                 settings: [
-                    { id: 'customcape_url', label: 'Cape URL', type: 'text', placeholder: 'Enter image URL...', defaultValue: '' }
+                    { id: 'customcape_url', label: 'Coming very soon' }
                 ]
             },
         ],
@@ -111,6 +124,7 @@
             },
         ]
     };
+
 
     function getModuleByName(moduleName) {
         for (const category of Object.values(modules)) {
@@ -158,14 +172,16 @@
 
     function inMenu() {
         ClientHud.style.display = 'none';
-        document.querySelectorAll(".AdBannerContainer").forEach(adHolder => { adHolder.remove(); });
+        document.querySelectorAll(".AdBannerContainer").forEach(adHolder => {
+            adHolder.remove();
+        });
     }
 
     function inGame() {
         ClientHud.style.display = 'block';
-        document.querySelectorAll(".AdBannerContainer").forEach(adHolder => { adHolder.remove(); });
-
-
+        document.querySelectorAll(".AdBannerContainer").forEach(adHolder => {
+            adHolder.remove();
+        });
         const GameHeader = document.querySelector('.InGameHeader');
         GameHeader.style.backgroundColor = 'rgba(30, 33, 41 ,0.85)';
         GameHeader.style.padding = '23px 5px';
@@ -182,11 +198,11 @@
             const observer = new MutationObserver(() => {
                 makeMessagesTransparent();
             });
-
-            observer.observe(chatContainer, { childList: true, subtree: true });
+            observer.observe(chatContainer, {
+                childList: true,
+                subtree: true
+            });
         }
-
-
         const InGameChat = document.querySelector('.Chat');
         InGameChat.style.backgroundColor = 'rgba(30, 33, 41 ,0.85)';
         InGameChat.style.borderRadius = '9px';
@@ -194,7 +210,6 @@
         InGameChat.style.width = '400px';
         InGameChat.style.maxWidth = '400px';
         InGameChat.style.padding = '10px 0px';
-
         if (GameHeader && InGameChat) {
             const headerRect = GameHeader.getBoundingClientRect();
             InGameChat.style.position = "absolute";
@@ -207,7 +222,6 @@
             InGameLogoHolder.style.display = 'flex';
             InGameLogoHolder.style.alignItems = 'center';
             InGameLogoHolder.style.marginRight = '0px';
-
             const VortexInGameLogo = document.createElement('div');
             VortexInGameLogo.style.backgroundImage = 'url(https://i.postimg.cc/WpkLShLM/Vortex-Client-Logo-Bigger.png)';
             VortexInGameLogo.style.backgroundRepeat = 'no-repeat';
@@ -220,7 +234,6 @@
             VortexInGameLogo.style.alignItems = 'center';
             VortexInGameLogo.style.justifyContent = 'center';
             VortexInGameLogo.style.margin = '0 0 0 3px';
-
             const text = document.createElement('span');
             text.textContent = 'ortex';
             text.style.fontSize = '1.1em';
@@ -230,28 +243,20 @@
             text.style.alignItems = 'center';
             text.style.marginLeft = '-10px';
             text.style.marginTop = '-2px';
-
             InGameLogoHolder.appendChild(VortexInGameLogo);
             InGameLogoHolder.appendChild(text);
-
             GameHeader.prepend(InGameLogoHolder);
-
-        }
-
-        ['LikeButton' ,'InGameHeaderLogo' , 'InGameHeaderSpacer'].forEach(className => {
+        } ['LikeButton', 'InGameHeaderLogo', 'InGameHeaderSpacer'].forEach(className => {
             document.querySelectorAll('.' + className).forEach(Hidden => {
                 Hidden.style.display = 'none';
                 Hidden.style.opacity = '0';
             });
         });
-
         const LobbyName = document.querySelector('.InGameHeaderLobbyName');
         if (LobbyName) {
             LobbyName.style.color = 'gray';
             LobbyName.style.borderRadius = '8px';
-        }
-
-        ['FpsWrapperDiv' ,'CoordinateUI'].forEach(className => {
+        } ['FpsWrapperDiv', 'CoordinateUI'].forEach(className => {
             document.querySelectorAll('.' + className).forEach(headerbox => {
                 headerbox.style.backgroundColor = 'rgba(30, 33, 41 ,0.85)';
                 headerbox.style.borderRadius = '9px';
@@ -259,25 +264,33 @@
                 headerbox.style.paddingBottom = '23px';
             });
         });
-
-        ['FpsCanvas' ,'CoordinateCanvas'].forEach(className => {
+        ['FpsCanvas', 'CoordinateCanvas'].forEach(className => {
             document.querySelectorAll('.' + className).forEach(canvasstyle => {
                 canvasstyle.style.height = '14px';
             });
         });
-
     }
+
     function checkState() {
         const homePage = document.querySelector(".HomePage");
         if (homePage && window.getComputedStyle(homePage).display !== "none") {
-            if (!menuInterval) { menuInterval = setInterval(inMenu, 1000); }
-            if (gameInterval) { clearInterval(gameInterval); gameInterval = null; }
+            if (!menuInterval) {
+                menuInterval = setInterval(inMenu, 1000);
+            }
+            if (gameInterval) {
+                clearInterval(gameInterval);
+                gameInterval = null;
+            }
         } else {
-            if (!gameInterval) { gameInterval = setInterval(inGame, 1000); }
-            if (menuInterval) { clearInterval(menuInterval); menuInterval = null; }
+            if (!gameInterval) {
+                gameInterval = setInterval(inGame, 1000);
+            }
+            if (menuInterval) {
+                clearInterval(menuInterval);
+                menuInterval = null;
+            }
         }
     }
-
     checkState();
     setInterval(checkState, 1000);
 
@@ -1397,7 +1410,7 @@
             isEditable = editable;
             if (!displayBox) return;
             if (editable) {
-                setStyles(displayBox, {cursor: 'grab', border: '2px dashed rgba(255, 255, 255, 0.7)', pointerEvents: 'auto'});
+                setStyles(displayBox, {cursor: 'grab', border: '2px dashed rgba(30, 33, 41 ,0.85)', pointerEvents: 'auto'});
                 displayBox.addEventListener('mousedown', onMouseDown);
             } else {
                 setStyles(displayBox, {cursor: 'default', border: 'none', pointerEvents: 'none'});
@@ -1425,7 +1438,7 @@
             displayBox = document.createElement('div');
             const savedPosition = loadPosition();
             const initialStyles = {
-                position: 'fixed', zIndex: '9999', display: 'flex', padding: '5px',
+                position: 'fixed', zIndex: '0.5', display: 'flex', padding: '5px',
                 backgroundColor: 'transparent', pointerEvents: 'none'
             };
 
@@ -1649,6 +1662,98 @@
         };
     })();
 
+    const crosshairModule = (function () {
+        let crosshairElement = null;
+        let hideStyle = null;
+        let updateIntervalId = null;
 
+        const getSettings = () => {
+            const savedSettings = JSON.parse(localStorage.getItem(settingsStorageKey)) || {};
+            return {
+                crosshair_color: savedSettings.crosshair_color || '#ffffff',
+                crosshair_size: savedSettings.crosshair_size !== undefined ? savedSettings.crosshair_size : 4,
+                crosshair_shape: savedSettings.crosshair_shape || 'Default'
+            };
+        };
+
+        const renderCrosshair = () => {
+            if (!crosshairElement) return;
+
+            const { crosshair_color, crosshair_size, crosshair_shape } = getSettings();
+            const size = parseInt(crosshair_size, 10);
+
+            let html = "";
+            if (crosshair_shape === "Dot") {
+                html = `<div style="width:${size * 2}px;height:${size * 2}px;background:${crosshair_color};border-radius:50%;position:absolute;top:-${size}px;left:-${size}px;"></div>`;
+            } else if (crosshair_shape === "Arrow") {
+                html = `
+                <div style="width:2px;height:${size * 2.5}px;background:${crosshair_color};position:absolute;top:0;left:-1px;transform-origin:top center;transform:rotate(-35deg);"></div>
+                <div style="width:2px;height:${size * 2.5}px;background:${crosshair_color};position:absolute;top:0;left:-1px;transform-origin:top center;transform:rotate(35deg);"></div>
+            `;
+            } else if (crosshair_shape === "Crossed") {
+                html = `
+                <div style="width:2px;height:${size * 2.2}px;background:${crosshair_color};position:absolute;top:0;left:-1px;transform-origin:top center;transform:rotate(-40deg);"></div>
+                <div style="width:2px;height:${size * 2.2}px;background:${crosshair_color};position:absolute;top:0;left:-1px;transform-origin:top center;transform:rotate(40deg);"></div>
+                <div style="width:2px;height:${size * 2.2}px;background:${crosshair_color};position:absolute;top:-${size * 2.2}px;left:-1px;transform-origin:bottom center;transform:rotate(40deg);"></div>
+                <div style="width:2px;height:${size * 2.2}px;background:${crosshair_color};position:absolute;top:-${size * 2.2}px;left:-1px;transform-origin:bottom center;transform:rotate(-40deg);"></div>
+            `;
+            } else if (crosshair_shape === "Cross") {
+                html = `
+                <div style="position:absolute;width:2px;height:${size * 2}px;background:${crosshair_color};top:-${size * 3}px;left:-1px;"></div>
+                <div style="position:absolute;width:2px;height:${size * 2}px;background:${crosshair_color};top:${size + 1}px;left:-1px;"></div>
+                <div style="position:absolute;width:${size * 2}px;height:2px;background:${crosshair_color};top:-1px;left:-${size * 3}px;"></div>
+                <div style="position:absolute;width:${size * 2}px;height:2px;background:${crosshair_color};top:-1px;left:${size + 1}px;"></div>
+            `;
+            } else if (crosshair_shape === "Square") {
+                const squareSide = size * 3;
+                const offset = squareSide / 2;
+                html = `<div style="position:absolute; width:${squareSide}px; height:${squareSide}px; background:${crosshair_color}; top:-${offset}px; left:-${offset}px;"></div>`;
+            } else {
+                html = `
+                <div style="position:absolute;width:2px;height:${size * 4}px;background:${crosshair_color};top:-${size * 2}px;left:-1px;"></div>
+                <div style="position:absolute;width:${size * 4}px;height:2px;background:${crosshair_color};top:-1px;left:-${size * 2}px;"></div>
+            `;
+            }
+
+            crosshairElement.innerHTML = html;
+        };
+
+        const start = () => {
+            if (crosshairElement) return;
+
+            hideStyle = document.createElement("style");
+            hideStyle.innerHTML = `.CrossHair { opacity: 0 !important; }`;
+            document.head.appendChild(hideStyle);
+
+            crosshairElement = document.createElement("div");
+            Object.assign(crosshairElement.style, {
+                position: "fixed",
+                top: "50%",
+                left: "50%",
+                zIndex: "0.5",
+                pointerEvents: "none"
+            });
+            ClientHud.appendChild(crosshairElement);
+
+            renderCrosshair();
+            updateIntervalId = setInterval(renderCrosshair, 250);
+        };
+
+        const stop = () => {
+            clearInterval(updateIntervalId);
+            updateIntervalId = null;
+
+            if (crosshairElement) {
+                crosshairElement.remove();
+                crosshairElement = null;
+            }
+            if (hideStyle) {
+                hideStyle.remove();
+                hideStyle = null;
+            }
+        };
+
+        return { start, stop };
+    })();
 
 })();
