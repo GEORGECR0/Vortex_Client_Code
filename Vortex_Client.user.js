@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Vortex Client
 // @namespace    http://tampermonkey.net/
-// @version      1.0
+// @version      Beta
 // @description  Vortex Client for Bloxd.io
 // @author       GEORGECR
 // @homepageURL  https://georgecr0.github.io/Vortex-Client/
@@ -14,6 +14,8 @@
 
 (function () {
     'use strict';
+    // No copyright.
+    // If you have questions about the code or want to use parts of it, feel free to DM me on Discord: ge0rgecr_
 
     const storageKey = 'vortexClientModuleStates';
     const settingsStorageKey = 'vortexClientModuleSettings';
@@ -22,14 +24,22 @@
     const modules = {
         'Combat': [
             {
-                name: 'Keystrokes', description: 'Displays movement keys\nand clicks on screen.', hasSettings: true, enabled: false,
-                onEnable: () => { console.log("Keystrokes enabled"); },
-                onDisable: () => { console.log("Keystrokes disabled"); },
+                name: 'Keystrokes', description: '(coming soon)', hasSettings: true, enabled: false,
+                onEnable: () => { },
+                onDisable: () => { },
                 settings: [
-                    { id: 'keystrokes_scale', label: 'Scale', type: 'slider', min: 0.5, max: 2, step: 0.1, defaultValue: 1.0 },
-                    { id: 'keystrokes_color', label: 'Text Color', type: 'color', defaultValue: '#ffffff' },
-                    { id: 'keystrokes_showcps', label: 'Show CPS', type: 'toggle', defaultValue: true }
+
                 ]
+            },
+            {
+                name: 'Combat Log Timer', description: '(coming soon)', enabled: false,
+                onEnable: () => { },
+                onDisable: () => { },
+            },
+            {
+                name: 'Anti Shake', description: '(coming soon)', enabled: false,
+                onEnable: () => { },
+                onDisable: () => { },
             },
         ],
         'Visual': [
@@ -66,16 +76,11 @@
         ],
         'Player': [
             {
-                name: 'Combat Log Timer', description: 'Tracks the time since\nyour last combat log.', enabled: false,
-                onEnable: () => console.log("Combat Log Timer enabled"),
-                onDisable: () => console.log("Combat Log Timer disabled")
-            },
-            {
-                name: 'Cinematic Mode', description: 'Smooth camera motion\nfor cinematic use.', hasSettings: true, enabled: false,
-                onEnable: () => console.log("Cinematic Mode enabled"),
-                onDisable: () => console.log("Cinematic Mode disabled"),
+                name: 'Cinematic Mode', description: '(coming soon)', hasSettings: true, enabled: false,
+                onEnable: () => { },
+                onDisable: () => { },
                 settings: [
-                    { id: 'cinematic_smoothness', label: 'Smoothness', type: 'slider', min: 1, max: 10, step: 1, defaultValue: 5 }
+
                 ]
             }
         ],
@@ -83,16 +88,27 @@
         'Utility': [
             {
                 name: 'Resolution Adjuster', description: 'Change game resolution\nwithout restarting.', hasSettings: true, enabled: false,
-                onEnable: () => { },
-                onDisable: () => { },
+                onEnable: () => {resolutionAdjusterModule.start()},
+                onDisable: () => {resolutionAdjusterModule.stop() },
                 settings: [
-                    { id: 'resolution_preset', label: 'Preset', type: 'dropdown', options: ['10%', '20%', '30%', '40%','60%', '70%', '80%', '90%', '100%'], defaultValue: '100%' }
+                    { id: 'resolution_value', label: 'Resolution', type: 'slider', min: 0.1, max: 1.0, step: 0.1, defaultValue: 1.0 },
                 ]
             },
             {
-                name: 'Notifications', description: 'Show alerts for events\nand key actions.', enabled: false,
-                onEnable: () => console.log("Notifications enabled"),
-                onDisable: () => console.log("Notifications disabled")
+                name: 'Snap Look', description: '(coming soon)', hasSettings: true, enabled: false,
+                onEnable: () => {},
+                onDisable: () => { },
+                settings: [
+
+                ]
+            },
+            {
+                name: 'Better Zoom', description: '(coming soon)', hasSettings: true, enabled: false,
+                onEnable: () => {},
+                onDisable: () => {},
+                settings: [
+
+                ]
             },
         ],
         'Cosmetics': [
@@ -105,23 +121,16 @@
                 ]
             },
             {
-                name: 'Custom Cape', description: 'Coming very soon cuz i have school and no time.', hasSettings: true, enabled: false,
-                onEnable: () => console.log("Custom Cape enabled"),
-                onDisable: () => console.log("Custom Cape disabled"),
+                name: 'Custom Capes', description:'(coming soon)', hasSettings: true, enabled: false,
+                onEnable: () => nametagsModule.start(),
+                onDisable: () => nametagsModule.stop(),
                 settings: [
-                    { id: 'customcape_url', label: 'Coming very soon' }
+
                 ]
             },
         ],
         'Settings': [
-            {
-                name: 'Client Theme', description: 'Change the look and\nfeel of the client UI.', hasSettings: true, enabled: false,
-                onEnable: () => console.log("Theme settings enabled"),
-                onDisable: () => console.log("Theme settings disabled"),
-                settings: [
-                    { id: 'theme_color', label: 'Accent Color', type: 'color', defaultValue: '#6E2828' }
-                ]
-            },
+
         ]
     };
 
@@ -140,7 +149,6 @@
         Object.values(modules).flat().forEach(module => {
             const isEnabled = savedStates[module.name] !== undefined ? savedStates[module.name] : module.enabled;
             if (isEnabled && typeof module.onEnable === 'function') {
-                console.log(`Auto-enabling ${module.name}`);
                 module.onEnable();
             }
         });
@@ -172,9 +180,38 @@
 
     function inMenu() {
         ClientHud.style.display = 'none';
-        document.querySelectorAll(".AdBannerContainer").forEach(adHolder => {
-            adHolder.remove();
+
+        ['LogoLoaderOuter' , 'LogoLoaderInner' , 'AdBannerContainer' ,'HomeHeaderRight LinkIconList'].forEach(className => {
+            document.querySelectorAll('.' + className).forEach(el => el.remove());
         });
+
+        document.title = "Bloxd.io - Vortex Client";
+        const MainTitle = document.querySelector('.Title');
+        if (MainTitle) {
+            MainTitle.style.webkitTextStroke = "0px";
+            MainTitle.textContent = "VORTEX CLIENT";
+            MainTitle.style.textShadow = "none";
+            MainTitle.style.fontSize = "55px";
+        }
+
+        const background = document.querySelector(".HomePageBackground");
+        if (background) {
+            background.style.backgroundImage = 'url(https://i.postimg.cc/dQZ3BwG5/194693-Minecraft-video-games-shaders-748x421.png)';
+        }
+
+        const TitleContainer = document.querySelector('.TitleContainer');
+        TitleContainer.style.width = '70%';
+
+
+        document.querySelectorAll('.AvailableGameText.SmallTextBold').forEach(CardText => {
+            CardText.style.backgroundColor = 'transparent';
+            CardText.style.textShadow = '1px 1px 2px black';
+        });
+
+        document.querySelectorAll('.AvailableGame').forEach(GameCardContainer => {
+            GameCardContainer.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.2)";
+        });
+
     }
 
     function inGame() {
@@ -183,92 +220,94 @@
             adHolder.remove();
         });
         const GameHeader = document.querySelector('.InGameHeader');
-        GameHeader.style.backgroundColor = 'rgba(30, 33, 41 ,0.85)';
-        GameHeader.style.padding = '23px 5px';
-        GameHeader.style.borderRadius = '9px';
+        if (GameHeader) {
+            GameHeader.style.backgroundColor = 'rgba(30, 33, 41, 0.85)';
+            GameHeader.style.padding = '23px 5px';
+            GameHeader.style.borderRadius = '9px';
 
-        function makeMessagesTransparent() {
-            document.querySelectorAll('.MessageWrapper').forEach(msg => {
-                msg.style.backgroundColor = 'transparent';
-            });
-        }
-        makeMessagesTransparent();
-        const chatContainer = document.querySelector('.Chat');
-        if (chatContainer) {
-            const observer = new MutationObserver(() => {
-                makeMessagesTransparent();
-            });
-            observer.observe(chatContainer, {
-                childList: true,
-                subtree: true
-            });
-        }
-        const InGameChat = document.querySelector('.Chat');
-        InGameChat.style.backgroundColor = 'rgba(30, 33, 41 ,0.85)';
-        InGameChat.style.borderRadius = '9px';
-        InGameChat.style.maxHeight = '350px';
-        InGameChat.style.width = '400px';
-        InGameChat.style.maxWidth = '400px';
-        InGameChat.style.padding = '10px 0px';
-        if (GameHeader && InGameChat) {
-            const headerRect = GameHeader.getBoundingClientRect();
-            InGameChat.style.position = "absolute";
-            InGameChat.style.top = `${headerRect.bottom + 5 + window.scrollY}px`;
-        }
+            function makeMessagesTransparent() {
+                document.querySelectorAll('.MessageWrapper').forEach(msg => {
+                    msg.style.backgroundColor = 'transparent';
+                });
+            }
+            makeMessagesTransparent();
+            const chatContainer = document.querySelector('.Chat');
+            if (chatContainer) {
+                const observer = new MutationObserver(() => {
+                    makeMessagesTransparent();
+                });
+                observer.observe(chatContainer, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+            const InGameChat = document.querySelector('.Chat');
+            InGameChat.style.backgroundColor = 'rgba(30, 33, 41 ,0.85)';
+            InGameChat.style.borderRadius = '9px';
+            InGameChat.style.maxHeight = '350px';
+            InGameChat.style.width = '400px';
+            InGameChat.style.maxWidth = '400px';
+            InGameChat.style.padding = '10px 0px';
+            if (GameHeader && InGameChat) {
+                const headerRect = GameHeader.getBoundingClientRect();
+                InGameChat.style.position = "absolute";
+                InGameChat.style.top = `${headerRect.bottom + 5 + window.scrollY}px`;
+            }
 
-        if (!document.querySelector('.VortexInGameLogo')) {
-            const InGameLogoHolder = document.createElement('div');
-            InGameLogoHolder.classList.add('VortexInGameLogo');
-            InGameLogoHolder.style.display = 'flex';
-            InGameLogoHolder.style.alignItems = 'center';
-            InGameLogoHolder.style.marginRight = '0px';
-            const VortexInGameLogo = document.createElement('div');
-            VortexInGameLogo.style.backgroundImage = 'url(https://i.postimg.cc/WpkLShLM/Vortex-Client-Logo-Bigger.png)';
-            VortexInGameLogo.style.backgroundRepeat = 'no-repeat';
-            VortexInGameLogo.style.backgroundSize = 'contain';
-            VortexInGameLogo.style.backgroundPosition = 'center';
-            VortexInGameLogo.style.color = '#fff';
-            VortexInGameLogo.style.width = '2em';
-            VortexInGameLogo.style.height = '1.5em';
-            VortexInGameLogo.style.display = 'flex';
-            VortexInGameLogo.style.alignItems = 'center';
-            VortexInGameLogo.style.justifyContent = 'center';
-            VortexInGameLogo.style.margin = '0 0 0 3px';
-            const text = document.createElement('span');
-            text.textContent = 'ortex';
-            text.style.fontSize = '1.1em';
-            text.style.fontWeight = 'bolder';
-            text.style.color = '#fff';
-            text.style.display = 'flex';
-            text.style.alignItems = 'center';
-            text.style.marginLeft = '-10px';
-            text.style.marginTop = '-2px';
-            InGameLogoHolder.appendChild(VortexInGameLogo);
-            InGameLogoHolder.appendChild(text);
-            GameHeader.prepend(InGameLogoHolder);
-        } ['LikeButton', 'InGameHeaderLogo', 'InGameHeaderSpacer'].forEach(className => {
-            document.querySelectorAll('.' + className).forEach(Hidden => {
-                Hidden.style.display = 'none';
-                Hidden.style.opacity = '0';
+            if (!document.querySelector('.VortexInGameLogo')) {
+                const InGameLogoHolder = document.createElement('div');
+                InGameLogoHolder.classList.add('VortexInGameLogo');
+                InGameLogoHolder.style.display = 'flex';
+                InGameLogoHolder.style.alignItems = 'center';
+                InGameLogoHolder.style.marginRight = '0px';
+                const VortexInGameLogo = document.createElement('div');
+                VortexInGameLogo.style.backgroundImage = 'url(https://i.postimg.cc/WpkLShLM/Vortex-Client-Logo-Bigger.png)';
+                VortexInGameLogo.style.backgroundRepeat = 'no-repeat';
+                VortexInGameLogo.style.backgroundSize = 'contain';
+                VortexInGameLogo.style.backgroundPosition = 'center';
+                VortexInGameLogo.style.color = '#fff';
+                VortexInGameLogo.style.width = '2em';
+                VortexInGameLogo.style.height = '1.5em';
+                VortexInGameLogo.style.display = 'flex';
+                VortexInGameLogo.style.alignItems = 'center';
+                VortexInGameLogo.style.justifyContent = 'center';
+                VortexInGameLogo.style.margin = '0 0 0 3px';
+                const text = document.createElement('span');
+                text.textContent = 'ortex';
+                text.style.fontSize = '1.1em';
+                text.style.fontWeight = 'bolder';
+                text.style.color = '#fff';
+                text.style.display = 'flex';
+                text.style.alignItems = 'center';
+                text.style.marginLeft = '-10px';
+                text.style.marginTop = '-2px';
+                InGameLogoHolder.appendChild(VortexInGameLogo);
+                InGameLogoHolder.appendChild(text);
+                GameHeader.prepend(InGameLogoHolder);
+            } ['LikeButton', 'InGameHeaderLogo', 'InGameHeaderSpacer'].forEach(className => {
+                document.querySelectorAll('.' + className).forEach(Hidden => {
+                    Hidden.style.display = 'none';
+                    Hidden.style.opacity = '0';
+                });
             });
-        });
-        const LobbyName = document.querySelector('.InGameHeaderLobbyName');
-        if (LobbyName) {
-            LobbyName.style.color = 'gray';
-            LobbyName.style.borderRadius = '8px';
-        } ['FpsWrapperDiv', 'CoordinateUI'].forEach(className => {
-            document.querySelectorAll('.' + className).forEach(headerbox => {
-                headerbox.style.backgroundColor = 'rgba(30, 33, 41 ,0.85)';
-                headerbox.style.borderRadius = '9px';
-                headerbox.style.paddingTop = '23px';
-                headerbox.style.paddingBottom = '23px';
+            const LobbyName = document.querySelector('.InGameHeaderLobbyName');
+            if (LobbyName) {
+                LobbyName.style.color = 'gray';
+                LobbyName.style.borderRadius = '8px';
+            } ['FpsWrapperDiv', 'CoordinateUI'].forEach(className => {
+                document.querySelectorAll('.' + className).forEach(headerbox => {
+                    headerbox.style.backgroundColor = 'rgba(30, 33, 41 ,0.85)';
+                    headerbox.style.borderRadius = '9px';
+                    headerbox.style.paddingTop = '23px';
+                    headerbox.style.paddingBottom = '23px';
+                });
             });
-        });
-        ['FpsCanvas', 'CoordinateCanvas'].forEach(className => {
-            document.querySelectorAll('.' + className).forEach(canvasstyle => {
-                canvasstyle.style.height = '14px';
-            });
-        });
+            ['FpsCanvas', 'CoordinateCanvas'].forEach(className => {
+                document.querySelectorAll('.' + className).forEach(canvasstyle => {
+                    canvasstyle.style.height = '14px';
+                });
+            })
+        }
     }
 
     function checkState() {
@@ -427,9 +466,9 @@
     tabBar.appendChild(separator);
 
     const tabs = [
-        { name: 'Combat', icon: 'ri-sword-fill', description: '#Modules for fighting and attacks' },
+        { name: 'Combat', icon: 'ri-sword-fill', description: '#Modules for fighting and attacks (coming soon)' },
         { name: 'Visual', icon: 'ri-eye-fill', description: '#Modules for graphics and effects' },
-        { name: 'Player', icon: 'ri-walk-fill', description: '#Modules for movement and stats' },
+        { name: 'Player', icon: 'ri-walk-fill', description: '#Modules for movement and stats (coming soon)' },
         { name: 'Utility', icon: 'ri-tools-fill', description: '#Modules for extra tools and functions' },
         { name: 'Cosmetics', icon: 'ri-magic-fill', description: '#Modules for skins and appearance' }
     ];
@@ -792,7 +831,6 @@
         function saveSetting(id, value) {
             savedSettings[id] = value;
             localStorage.setItem(settingsStorageKey, JSON.stringify(savedSettings));
-            console.log(`Saved setting: ${id} = ${value}`);
         }
 
         module.settings.forEach(setting => {
@@ -1755,5 +1793,65 @@
 
         return { start, stop };
     })();
+
+    const resolutionAdjusterModule = (function() {
+        const UPDATE_INTERVAL_MS = 2000;
+        const FIND_CANVAS_INTERVAL_MS = 1000;
+        let findCanvasInterval = null;
+        let updateIntervalId = null;
+        let gameCanvas = null;
+        const getResolutionSetting = () => {
+            const savedSettings = JSON.parse(localStorage.getItem(settingsStorageKey)) || {};
+            return savedSettings.resolution_value !== undefined ? savedSettings.resolution_value : 1.0;
+        };
+        const resizeCanvas = (scale) => {
+            if (!gameCanvas) return;
+            const newWidth = Math.round(window.innerWidth * scale);
+            const newHeight = Math.round(window.innerHeight * scale);
+            if (gameCanvas.width !== newWidth || gameCanvas.height !== newHeight) {
+                gameCanvas.width = newWidth;
+                gameCanvas.height = newHeight;
+            }
+        };
+
+        const start = () => {
+            if (findCanvasInterval || updateIntervalId) return;
+
+            findCanvasInterval = setInterval(() => {
+                gameCanvas = document.getElementById('noa-canvas');
+                if (gameCanvas && gameCanvas.width > 0) {
+                    clearInterval(findCanvasInterval);
+                    findCanvasInterval = null;
+                    const updateResolution = () => {
+                        const currentScale = getResolutionSetting();
+                        resizeCanvas(currentScale);
+                    };
+                    updateResolution();
+                    updateIntervalId = setInterval(updateResolution, UPDATE_INTERVAL_MS);
+                }
+            }, FIND_CANVAS_INTERVAL_MS);
+        };
+
+        const stop = () => {
+            if (findCanvasInterval) {
+                clearInterval(findCanvasInterval);
+                findCanvasInterval = null;
+            }
+            if (updateIntervalId) {
+                clearInterval(updateIntervalId);
+                updateIntervalId = null;
+            }
+            if (gameCanvas) {
+                resizeCanvas(1.0);
+            }
+            gameCanvas = null;
+        };
+
+        return {
+            start,
+            stop
+        };
+    })();
+
 
 })();
